@@ -16,46 +16,6 @@
     background-image: radial-gradient(ellipse at 50% 0%, rgba(30,80,160,0.12) 0%, transparent 60%);
   }
 
-  /* WEBHOOK CONFIG BAR */
-  .webhook-bar {
-    max-width: 1200px;
-    margin: 0 auto 36px;
-    background: #0d1422;
-    border: 1px solid #1c2a42;
-    border-radius: 10px;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .webhook-bar label {
-    font-size: 0.82rem;
-    color: #7a8aaa;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .webhook-bar input {
-    flex: 1;
-    min-width: 200px;
-    background: #060a12;
-    border: 1px solid #1c2a42;
-    border-radius: 6px;
-    color: #c0ccdf;
-    font-family: 'Barlow', sans-serif;
-    font-size: 0.83rem;
-    padding: 8px 12px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .webhook-bar input:focus { border-color: #3a6aaa; }
-  .webhook-bar input::placeholder { color: #3a4a60; }
-  .webhook-status { font-size: 0.78rem; color: #5a6a80; white-space: nowrap; }
-  .webhook-status.ok { color: #4adf8a; }
-  .webhook-status.err { color: #df6a4a; }
-
   /* HEADER */
   .header { text-align: center; margin-bottom: 48px; }
   .logo-wrap { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 18px; }
@@ -183,13 +143,6 @@
 </style>
 </head>
 <body>
-
-<!-- WEBHOOK CONFIG -->
-<div class="webhook-bar">
-  <label>⚙ Discord Webhook URL</label>
-  <input type="text" id="webhookUrl" placeholder="https://discord.com/api/webhooks/..." />
-  <span class="webhook-status" id="webhookStatus">Ingen webhook inlagd</span>
-</div>
 
 <!-- HEADER -->
 <div class="header">
@@ -326,6 +279,11 @@
 </div>
 
 <script>
+  // -----------------------------------------------
+  // WEBHOOK URL — inbyggd, behöver ej fyllas i manuellt
+  // -----------------------------------------------
+  const WEBHOOK_URL = "https://discord.com/api/webhooks/1489760826163204096/bNPr06DHaBYz3ywAVkcCd0YZ4myEyygNKlwQD0tP-_TyXP6D7yy6GhlmNHkDV06rNjuC";
+
   let currentTier = '';
   let currentPrice = '';
   let currentClass = '';
@@ -336,23 +294,6 @@
     guld:     { accent: 'f5d442', emoji: '🥇' },
     platinum: { accent: '5de8f8', emoji: '💎' }
   };
-
-  const webhookInput = document.getElementById('webhookUrl');
-  const webhookStatus = document.getElementById('webhookStatus');
-
-  webhookInput.addEventListener('input', () => {
-    const val = webhookInput.value.trim();
-    if (val.startsWith('https://discord.com/api/webhooks/')) {
-      webhookStatus.textContent = '✓ Webhook inlagd';
-      webhookStatus.className = 'webhook-status ok';
-    } else if (val.length > 0) {
-      webhookStatus.textContent = '✗ Ogiltig URL';
-      webhookStatus.className = 'webhook-status err';
-    } else {
-      webhookStatus.textContent = 'Ingen webhook inlagd';
-      webhookStatus.className = 'webhook-status';
-    }
-  });
 
   function openModal(tier, price, cls) {
     currentTier = tier;
@@ -376,13 +317,8 @@
   }
 
   async function sendRequest() {
-    const webhook = webhookInput.value.trim();
     const username = document.getElementById('discordName').value.trim();
 
-    if (!webhook || !webhook.startsWith('https://discord.com/api/webhooks/')) {
-      showToast('⚠️', 'Lägg in en giltig Discord Webhook URL först!', 'error');
-      return;
-    }
     if (!username) {
       showToast('⚠️', 'Fyll i ditt Discord-användarnamn!', 'error');
       return;
@@ -411,7 +347,7 @@
     };
 
     try {
-      const res = await fetch(webhook, {
+      const res = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -420,10 +356,10 @@
         closeModal();
         showToast('✅', `Förfrågan skickad! Vårt team kontaktar dig snart, ${username}.`, 'success');
       } else {
-        showToast('❌', 'Något gick fel. Kontrollera webhook-URL:en.', 'error');
+        showToast('❌', 'Något gick fel. Kontakta en admin.', 'error');
       }
     } catch (err) {
-      showToast('❌', 'Kunde inte skicka — kontrollera webhook-URL:en.', 'error');
+      showToast('❌', 'Kunde inte skicka förfrågan. Försök igen.', 'error');
     }
 
     confirmBtn.disabled = false;
